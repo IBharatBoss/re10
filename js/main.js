@@ -126,19 +126,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openLightbox = (src) => {
         if (!imageLightbox || !lightboxImg) return;
+        lightboxImg.classList.remove('loaded');
+        
+        lightboxImg.onload = () => {
+            lightboxImg.classList.add('loaded');
+        };
+        
         lightboxImg.src = src;
         imageLightbox.classList.add('active');
     };
 
+    const closeLightbox = () => {
+        if (!imageLightbox || !lightboxImg) return;
+        imageLightbox.classList.remove('active');
+        setTimeout(() => {
+            lightboxImg.src = '';
+            lightboxImg.classList.remove('loaded');
+        }, 400); // Wait for transition
+    };
+
     if (closeLightboxBtn) {
-        closeLightboxBtn.addEventListener('click', () => {
-            imageLightbox.classList.remove('active');
-        });
+        closeLightboxBtn.addEventListener('click', closeLightbox);
     }
     if (imageLightbox) {
         imageLightbox.addEventListener('click', (e) => {
             if (e.target === imageLightbox) {
-                imageLightbox.classList.remove('active');
+                closeLightbox();
             }
         });
     }
@@ -761,18 +774,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (delModal) delModal.classList.add('active');
             });
 
-            // Wire up image click for lightbox
-            const imgEl = card.querySelector('.card-main-img');
-            imgEl.addEventListener('click', (e) => {
+            // Wire up image wrapper click for lightbox (enables clicking blurred background too)
+            const imgWrapper = card.querySelector('.img-wrapper');
+            imgWrapper.addEventListener('click', (e) => {
                 e.stopPropagation(); // prevent card click
-
-                // If it's a placeholder, just use the raw url instead of trying to de-transform
-                let rawImageSrc = imgEl.src;
-                if (prop.images && prop.images.length > 0) {
-                    let imgObj = prop.images[0];
-                    rawImageSrc = typeof imgObj === 'string' ? imgObj : imgObj.url;
-                }
-                if (window.openLightbox) window.openLightbox(rawImageSrc);
+                if (window.openLightbox) window.openLightbox(thumbnailUrl);
             });
 
             // Card click to view details (Edit Modal)
